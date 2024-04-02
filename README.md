@@ -18,12 +18,12 @@
 
 Before you start using DigNet, please make sure the following dependencies are installed. These packages are necessary for running DigNet:
 
-####key packages:
+#### key packages:
 - python==3.8
 - torch==2.0.0
 - torch-geometric==0.11.4
 
-####other packages:
+#### other packages:
 - networkx
 - joblib
 - pickle
