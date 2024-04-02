@@ -9,7 +9,6 @@
 **Please cite our paper if it helps you.**
 
 ![workfolw](https://github.com/zpliulab/DigNet/blob/main/images/framework.png)
-![workfolw](https://github.com/zpliulab/DigNet/blob/main/images/network.gif)
 
 ## DigNet User Guide
 
@@ -59,6 +58,12 @@ We recommend using a virtual environment to manage dependencies to avoid any ver
 - `Download_TF_file.py`: used to download TF list
 - `make_final_net.py`: Integrated voting sub-function
 - `Tutorial.py`: A quick tutorial for using DigNet
+
+
+<div align="center">
+  <img src="https://github.com/zpliulab/DigNet/blob/main/images/network.gif" alt="Schematic diagram of DigNet generation network" style="width: 200px; height: 100px;"/>
+</div>
+
 
 ## Using DigNet
 
