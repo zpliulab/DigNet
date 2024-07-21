@@ -47,18 +47,18 @@ class DigNet:
         self.MLP_base_node = args.num_MLP  # MLP
         self.GTM_base_node = args.num_GTM  # Transfomer  hidden
 
-        self.batch_size = args.batch_size  # 批次大小
-        self.num_epoch = args.num_epoch  # 训练次数
-        self.lr = args.LR  # 学习率
-        self.test_interval = args.test_interval  # 测试间隔
-        self.save_interval = args.save_interval  # 检查点保存间隔
-        self.max_nodes = args.max_nodes  # 网络最大的节点数量
-        self.diffusion_timesteps = args.diffusion_timesteps  # 扩散模型的 time-step参数
-        self.test_pathway = args.test_pathway  # 需要测试的Pathway（KEGG）
-        self.use_PCA = int(args.use_pca) if args.use_pca.lower() != 'false' else False  # 是否使用PCA？
-        self.metacell = args.metacell  # 使用 Meta-cell 参数
-        self.k = args.KNN  # Meta-cell 参数 - KNN
-        self.Cnum = args.Cnum  # Meta-cell 参数 - Cnum
+        self.batch_size = args.batch_size  # Batch size
+        self.num_epoch = args.num_epoch  # Number of training epochs
+        self.lr = args.LR  # Learning rate
+        self.test_interval = args.test_interval  # Interval for testing
+        self.save_interval = args.save_interval  # Checkpoint save interval
+        self.max_nodes = args.max_nodes  # Maximum number of nodes in the network
+        self.diffusion_timesteps = args.diffusion_timesteps  # Time-step parameter for the diffusion model
+        self.test_pathway = args.test_pathway  # Pathway to be tested (KEGG)
+        self.use_PCA = int(args.use_pca) if args.use_pca.lower() != 'false' else False  # Whether to use PCA
+        self.metacell = args.metacell  # Use Meta-cell parameters
+        self.k = args.KNN  # Meta-cell parameter - KNN
+        self.Cnum = args.Cnum  # Meta-cell parameter - Cnum
 
         self.lr_break = 1e-6
 
@@ -171,9 +171,9 @@ class DigNet:
 
     def load_data(self, train_filename, n_train=200, n_test=[1000, 1010]):
         '''
-          train_filename: 请输入训练数据文件名，如果是模拟数据，请输入包含list文件（每个list包含'net'和'exp',具体请参考模拟数据）的pickle保存的文件
-          n_train ： 在模拟数据训练中使能，该参数为训练的网络数量, 例如 n_train = 200
-          n_test ： 在模拟数据训练中使能，该参数为测试的网络数量，例如 n_test = [1000,1010]
+          train_filename: Please enter the filename of the training data. If using simulated data, provide a pickle file containing a list where each list contains 'net' and 'exp'. Refer to the simulated data for details.
+          n_train: Enables training with simulated data. This parameter specifies the number of networks for training, e.g., n_train = 200.
+          n_test: Enables testing with simulated data. This parameter specifies the range of networks for testing, e.g., n_test = [1000, 1010].
         '''
         # load data
         if not is_csv_or_xlsx(train_filename):
@@ -285,9 +285,9 @@ class DigNet:
 
     def train(self, train_filename, n_train=200, n_test=[1000, 1010]):
         '''
-          train_filename: 请输入训练数据文件名，如果是模拟数据，请输入包含list文件（每个list包含'net'和'exp',具体请参考模拟数据）的pickle保存的文件
-          n_train ： 在模拟数据训练中使能，该参数为训练的网络数量, 例如 n_train = 200
-          n_test ： 在模拟数据训练中使能，该参数为测试的网络数量，例如 n_test = [1000,1010]
+          train_filename: Please enter the filename of the training data. If using simulated data, provide a pickle file containing a list where each list contains 'net' and 'exp'. Refer to the simulated data for details.
+          n_train: Enables training with simulated data. This parameter specifies the number of networks for training, e.g., n_train = 200.
+          n_test: Enables testing with simulated data. This parameter specifies the range of networks for testing, e.g., n_test = [1000, 1010].
         '''
         self.load_data(train_filename, n_train=n_train, n_test=n_test)
         self.setup_model()
@@ -320,12 +320,12 @@ class DigNet:
                 print("  --- Epoch %d average Loss: %.4f mean Train AUC: %.4f  lr: %0.6f" % (
                     epoch + 1, total_loss, total_AUC, self.optimizer.param_groups[0]['lr']))
 
-            # 每隔 save_interval 个 epoch 保存模型
+            # Save the model every save_interval epochs
             if (epoch + 1) % self.save_interval == 0:
                 filename = self.checkpoint_dir + f'_checkpoint_{self.timestamp}_epoch{epoch + 1}.pth'
                 self.save_model(filename)
 
-            # 每隔 test_interval 个 epoch 验证模型
+            # Validate the model every test_interval epoc
             if ((epoch + 1) % self.test_interval == 0) and (epoch + 1) > 1:
                 if self.test_list:
                     self.validation(epoch)
@@ -338,6 +338,11 @@ class DigNet:
 
         print(f"  --- Best AUC is {self.best_mean_AUC}")
         print(f"  --- Best best_AUC_file is {self.best_mean_AUC_file}")
+        if not hasattr(self, 'printf'):
+            self.printf = None
+
+        return self.best_mean_AUC, self.best_mean_AUC_file, self.printf
+
 
     def test(self, diffusion_pre, testdata, truelabel=None):
         self.diffusion = self.load_pre_model(diffusion_pre)
@@ -412,20 +417,21 @@ class DigNet:
                 results['AUPR'].append(performance['AUPR'])
                 results['AUPR_norm'].append(performance['AUPR_norm'])
                 results['F1'].append(performance['F1'])
-        print(
-            "  --- Epoch  %.4f Final+std： Test AUC: %.4f+%.4f  AUPR: %.4f+%.4f  AUPRM: %.4f+%.4f F1: %.4f+%.4f" % (
+
+        printf = "  --- Epoch  %.4f Final+std： Test AUC: %.4f+%.4f  AUPR: %.4f+%.4f  AUPRM: %.4f+%.4f F1: %.4f+%.4f" % (
                 epoch + 1,
                 np.mean(results['AUC'][-self.rep_num:]), np.std(results['AUC'][-self.rep_num:]),
                 np.mean(results['AUPR'][-self.rep_num:]), np.std(results['AUPR'][-self.rep_num:]),
                 np.mean(results['AUPR_norm'][-self.rep_num:]), np.std(results['AUPR_norm'][-self.rep_num:]),
-                np.mean(results['F1'][-self.rep_num:]), np.std(results['F1'][-self.rep_num:])))
+                np.mean(results['F1'][-self.rep_num:]), np.std(results['F1'][-self.rep_num:]))
+        print(printf)
 
         if np.mean(results['AUC']) > self.best_mean_AUC:
             self.best_mean_AUC = np.mean(results['AUC'])
             self.best_mean_AUC_file = self.checkpoint_dir + f'checkpoint_{self.timestamp}_epoch{epoch + 1}.pth'
             print(f"  --- Best AUC is {self.best_mean_AUC}")
             print(f"  --- Best best_AUC_file is {self.best_mean_AUC_file}")
-
+            self.printf = printf
         # if np.mean(results['AUC'][-rep_num:]) < best_mean_AUC and epoch > save_interval:
         # break
 
@@ -433,47 +439,48 @@ class DigNet:
 if __name__ == '__main__':
 
     '''
-        这是一个运行例子，仅修改了部分必要参数，完整参数请参考README.txt
+        This is a running example with only essential parameters modified. For complete parameters, please refer to README.txt.
     '''
 
     import json
 
     exec(open('config.py').read())
-    config_file = 'config/config.json'  # 或者任何你存放配置文件的路径
+    config_file = 'config/config.json'  # Or any path where your configuration file is stored
     args = Config(config_file)
-    '''
-        训练模型, 我们根据经验将您的情况分为两种:
-        1. 输入scRNA-seq的基因表达谱和对应的GRN：需要多个基因表达谱和对应，详情参见补充S1
-        2. 仅输入scRNA-seq的基因表达谱：该情况可以考虑使用手稿中的方法构建参考网络并
-        一旦您获得了上述文件，即可将它输入到DigNet.train()中训练一个特有的模型
 
-        测试模型，您需要为DigNet.test指定以下三种文件
-        1. 基因表达谱文件（如果有真实的网络信息那么将进行评估）test_filename：它是与train_filename类似格式存储的文件
-        2. 预训练DigNet模型train_model_file：这是一个训练好的DigNet模型参数文件，我们在Github项目库/result中给出了几个*.pth结尾的参数模型
-        3. pca参数模型文件：这是一个根据训练数据导出的pca参数文件
-        （可选参数）args.test_pathway： DigNet仅允许运行指定数量内（训练时已经指定）的基因表达信息构建网络，因此您可以指定部分基因集合，它可以是KEGG数据库中的ID号，或者以表格形式存储的用户自定义列表。
     '''
-    # 针对情况1：
-    # train_filename = 'pathway/simulation/SERGIO_data_node_2000.data'   # 您的基因表达谱和网络输入数据，详情参考补充S1，
-    # args.pca_file = 'result/simu_pca_model.pkl'                        # 这是一个pca参数文件，它需要在测试步骤被加载。
+        Training the Model: We categorize your situation into two types:
+        1. Input scRNA-seq gene expression profiles with corresponding GRNs: Requires multiple gene expression profiles and their corresponding GRNs. For details, refer to Supplement S1.
+        2. Input scRNA-seq gene expression profiles only: In this case, consider constructing a reference network using the methods described in the manuscript.
+        Once you have prepared the files mentioned above, you can input them into DigNet.train() to train a specific model.
+
+        Testing the Model: You need to specify the following three types of files for DigNet.test:
+        1. Gene Expression Profile File: If true network information is available, it will be evaluated. The test_filename should be stored in a similar format as the train_filename.
+        2. Pre-trained DigNet Model File (train_model_file): This is a pre-trained DigNet model parameter file. We provide several models ending in *.pth in the /result directory of our GitHub project.
+        3. PCA Parameter Model File: This is a PCA parameter file exported based on the training data.
+        (Optional Parameter) args.test_pathway: DigNet allows constructing networks using specified gene sets (predefined during training). You can specify part of the gene set using KEGG database IDs or user-defined lists stored in table format.
+    '''
+
+    # For Case 1:
+    # train_filename = 'pathway/simulation/SERGIO_data_node_2000.data'   # Your gene expression profile and network input data. Refer to Supplement S1 for details.
+    # args.pca_file = 'result/simu_pca_model.pkl'                        # This is a PCA parameter file, which needs to be loaded during the test step.
     # trainer = DigNet(args)
-    # trainer.train(train_filename, n_train=200, n_test=[1000, 1010])  # 训练模拟数据
+    # trainer.train(train_filename, n_train=200, n_test=[1000, 1010])  # Training with simulated data
 
-    # 针对情况2：
-    train_filename = 'CancerDatasets/DCA/FILE1T_cell_BRCA_output.csv'  # 请输入您的基因表达谱（以csv或xlsx结尾），如果在这之前想处理您的测序数据，例如矩阵补全和质控，请参考补充S2
-    args.pca_file = 'result/FILE1T_cell_pca_model.pkl'  # 这是一个pca参数文件，它需要在测试步骤被加载。
-    args.test_pathway = "hsa05224"  # 在训练过程中，如果您想从基因列表中删除某些基因集合，请填写对应的KEGG库ID号。
+    # For Case 2:
+    train_filename = 'CancerDatasets/DCA/FILE1T_cell_BRCA_output.csv'  # Please input your gene expression profile (ending in csv or xlsx). If you want to process your sequencing data beforehand, such as matrix completion and quality control, please refer to Supplement S2.
+    args.pca_file = 'result/FILE1T_cell_pca_model.pkl'  # This is a PCA parameter file, which needs to be loaded during the test step.
+    args.test_pathway = "hsa05224"  # During training, if you want to exclude certain gene sets from the gene list, please provide the corresponding KEGG library ID number.
     trainer = DigNet(args)
-    trainer.train(train_filename)  # 训练模拟数据
+    best_mean_AUC, train_model_file, printf = trainer.train(train_filename)  # Training with simulated data
 
     # test_filename = 'pathway/simulation/SERGIO_data_for_test.data'
-    # #  train_model_file = 'result/Simu_DigNet_20240321-230146.pth'
+    # train_model_file = 'result/Simu_DigNet_20240321-230146.pth'
     # train_model_file = None
     # args.pca_file = 'result/simu_pca_model.pkl'
 
     test_filename = 'CancerDatasets/DCA/FILE1T_cell_BRCA_output.csv'
-    train_model_file = 'result/Simu_DigNet_20240321-230146.pth'
-    # train_model_file = None
+    #train_model_file = 'result/Simu_DigNet_20240321-230146.pth'
     args.test_pathway = "hsa05224"
     args.pca_file = 'result/FILE1T_cell_pca_model.pkl'
 
@@ -482,41 +489,37 @@ if __name__ == '__main__':
     test_num = 1
     result_filename = 'result/FILE1_dignet.data'
     for i in range(0, test_num):
-        print(f'Generate a network for the {i + 1: 3.0f}-th  gene expression profile!！')
-        if train_model_file is None:
-            train_model_file = trainer.best_mean_AUC_file
+        print(f'Generating a network for the {i + 1:3d}-th gene expression profile!')
         diffusion_pre = torch.load(train_model_file, map_location=trainer.device)
         testdata, truelabel = trainer.load_test_data(test_filename, num=i, diffusion_pre=diffusion_pre)
 
-        adj_final = trainer.test(testdata, diffusion_pre)  # 训练模拟数据
+        adj_final = trainer.test(testdata, diffusion_pre)  # Testing with simulated data
         performance = trainer.evaluation(adj_final, truelabel)
         for key in performance.keys():
             results[key].append(performance[key])
         results['nodenum'].append(testdata.x.shape[0])
-        f = open(result_filename, 'wb')
-        pickle.dump(results, f)
-        f.close()
+        with open(result_filename, 'wb') as f:
+            pickle.dump(results, f)
 
-    print(f'**************   Task is finished! The result are saved in {str(result_filename)} !   **************')
-
-    '''
-    补充S1: 如果你包含原始数据和网络,那么你可以直接作为’*.data‘或者任意pickle保存的文件导入
-            注意该文件是一个数据集合，其中包含多个 list 类型的变量，每个变量都具有以下字典结构：
-             1. 'net' 变量：
-                描述：包含了网络数据的邻接矩阵。
-                文件类型：Numpy ndarray。
-                内容：0-1权重矩阵，如果非0-1值也可被加载，规模为 cell * cell。
-             2. 'exp' 变量：
-                描述：包含了实验数据的 DataFrame。
-                文件类型：CSV 格式。
-                内容：scRNA-seq的预处理结果，规模为 gene * cell。
-
-    补充S2: 我们建议您在输入测序数据之前进行矩阵补全和质控。
-            Create_BRCA_data.py 是一个简单的例子！ 仅供参考      
-            一旦您获得了质量较高的基因表达信息（gene*cell），它应该以表格形式（csv或xlsx）存储，并且第一行和第一列应该分别是细胞编号和基因负号ID。
-
+    print(f'**************   Task is finished! The results are saved in {result_filename}!   **************')
 
     '''
+    Supplement S1: If your data includes raw data and networks, you can directly import them as '*.data' or any pickle-saved file.
+                   Note that the file should be a dataset containing multiple list-type variables, each with the following structure:
+                 1. 'net' variable:
+                    Description: Contains the adjacency matrix of network data.
+                    File Type: Numpy ndarray.
+                    Content: 0-1 weight matrix. Non-0-1 values can also be loaded, sized cell * cell.
+                 2. 'exp' variable:
+                    Description: Contains experimental data in DataFrame format.
+                    File Type: CSV format.
+                    Content: Preprocessed scRNA-seq results, sized gene * cell.
+
+    Supplement S2: We recommend completing matrix completion and quality control before inputting sequencing data.
+                   'Create_BRCA_data.py' provides a simple example for reference.
+                   Once you have obtained high-quality gene expression information (gene * cell), it should be stored in table format (CSV or XLSX), with the first row and column being cell numbers and gene symbol IDs, respectively.
+    '''
+
 
 
 
