@@ -2,7 +2,7 @@
 
 # Diffusion-based generation of gene regulatory network from scRNA-seq data with DigNet #
 
-**DigNet will be detailed if the manuscript is accepted!**
+**DigNet has been accepted in Genome Research!**
 
 **Please write to [zpliu@sdu.edu.cn](mailto:zpliu@sdu.edu.cn) if you have any questions.**
 
