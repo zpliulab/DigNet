@@ -4,7 +4,7 @@
 
 **DigNet has been accepted by Genome Research!**
 
-`Chuanyuan Wang, and Zhiping Liu. Diffusion-based generation of gene regulatory network from scRNA-seq data with DigNet. Genome research: gr-279551.`
+`Chuanyuan Wang, and Zhiping Liu. Diffusion-based generation of gene regulatory network from scRNA-seq data with DigNet. Genome research: gr-279551, Published online December 18, 2024. doi:10.1101/gr.279551.124.`
 
 **Please write to [zpliu@sdu.edu.cn](mailto:zpliu@sdu.edu.cn) if you have any questions.**
 
