@@ -23,7 +23,7 @@ Before you start using DigNet, please make sure the following dependencies are i
 #### key packages:
 - python==3.8
 - torch==2.0.0
-- torch-geometric==0.11.4
+- torch-geometric==2.3.1
 
 #### other packages:
 - networkx
